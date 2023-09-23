@@ -49,12 +49,6 @@ battleZonesMap.forEach((row, i) =>
 c.fillStyle = 'white'
 c.fillRect(0, 0, canvas.width, canvas.height)
 
-const backgroundImage = new Image()
-backgroundImage.src = './img/Pellet Town.png'
-
-const foregroundImage = new Image()
-foregroundImage.src = './img/foregroundObjects.png'
-
 const playerDownImage = new Image()
 playerDownImage.src = './img/playerDown.png'
 
@@ -73,7 +67,7 @@ const player = new Sprite({
     y: (canvas.height - 68) / 2
   },
   image: playerDownImage,
-  frames: { max: 4 },
+  frames: { max: 4, hold: 10 },
   sprites: {
     down: playerDownImage,
     up: playerUpImage,
@@ -84,12 +78,12 @@ const player = new Sprite({
 
 const background = new Sprite({
   position: { x: -737, y: -650 },
-  image: backgroundImage
+  image: { src: './img/Pellet Town.png' }
 })
 
 const foreground = new Sprite({
   position: { x: -737, y: -650 },
-  image: foregroundImage
+  image: { src: './img/foregroundObjects.png' }
 })
 
 const keys = {
@@ -107,9 +101,7 @@ const rectangularCollision = ({ rectangle1, rectangle2 }) =>
   rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
   rectangle1.position.y <= rectangle2.position.y + rectangle2.height
 
-const battle = {
-  initiated: false
-}
+const battle = { initiated: false }
 
 const animate = () => {
   const animationId = window.requestAnimationFrame(animate)
@@ -148,9 +140,12 @@ const animate = () => {
         overlapingArea > (player.width * player.height) / 2 &&
         Math.random() < 0.01
       ) {
-        console.log('activate battle')
         window.cancelAnimationFrame(animationId)
         battle.initiated = true
+
+        audio.map.stop()
+        audio.initBattle.play()
+        audio.battle.play()
 
         gsap.to('#overlappingDiv', {
           opacity: 1,
@@ -162,6 +157,7 @@ const animate = () => {
               opacity: 1,
               duration: 0.4,
               onComplete() {
+                initBattle()
                 animateBattle()
                 gsap.to('#overlappingDiv', {
                   opacity: 0,
@@ -177,149 +173,63 @@ const animate = () => {
     }
   }
 
+  const movePlayer = direction => {
+    let step = { x: 0, y: 0 }
+    let axis
+
+    if (direction === 'up') {
+      axis = 'y'
+      step[axis] = 3
+    }
+    if (direction === 'down') {
+      axis = 'y'
+      step[axis] = -3
+    }
+    if (direction === 'right') {
+      axis = 'x'
+      step[axis] = -3
+    }
+    if (direction === 'left') {
+      axis = 'x'
+      step[axis] = 3
+    }
+
+    player.animate = true
+    player.image = player.sprites[direction]
+
+    // stop player by boundaries
+    for (let i = 0; i < boundaries.length; i++) {
+      const boundary = boundaries[i]
+      if (
+        rectangularCollision({
+          rectangle1: player,
+          rectangle2: {
+            ...boundary,
+            position: {
+              x: boundary.position.x + step.x,
+              y: boundary.position.y + step.y
+            }
+          }
+        })
+      ) {
+        moving = false
+        break
+      }
+    }
+
+    if (moving) movables.forEach(m => (m.position[axis] += step[axis]))
+  }
+
   if (keys.w.pressed && lastKey === 'w') {
-    player.animate = true
-    player.image = player.sprites.up
-
-    for (let i = 0; i < boundaries.length; i++) {
-      const boundary = boundaries[i]
-      if (
-        rectangularCollision({
-          rectangle1: player,
-          rectangle2: {
-            ...boundary,
-            position: {
-              x: boundary.position.x,
-              y: boundary.position.y + 3
-            }
-          }
-        })
-      ) {
-        moving = false
-        break
-      }
-    }
-
-    if (moving) movables.forEach(m => (m.position.y += 3))
+    movePlayer('up')
   } else if (keys.a.pressed && lastKey === 'a') {
-    player.animate = true
-    player.image = player.sprites.left
-    for (let i = 0; i < boundaries.length; i++) {
-      const boundary = boundaries[i]
-      if (
-        rectangularCollision({
-          rectangle1: player,
-          rectangle2: {
-            ...boundary,
-            position: {
-              x: boundary.position.x + 3,
-              y: boundary.position.y
-            }
-          }
-        })
-      ) {
-        moving = false
-        break
-      }
-    }
-    if (moving) movables.forEach(m => (m.position.x += 3))
+    movePlayer('left')
   } else if (keys.s.pressed && lastKey === 's') {
-    player.animate = true
-    player.image = player.sprites.down
-    for (let i = 0; i < boundaries.length; i++) {
-      const boundary = boundaries[i]
-      if (
-        rectangularCollision({
-          rectangle1: player,
-          rectangle2: {
-            ...boundary,
-            position: {
-              x: boundary.position.x,
-              y: boundary.position.y - 3
-            }
-          }
-        })
-      ) {
-        moving = false
-        break
-      }
-    }
-    if (moving) movables.forEach(m => (m.position.y -= 3))
+    movePlayer('down')
   } else if (keys.d.pressed && lastKey === 'd') {
-    player.animate = true
-    player.image = player.sprites.right
-    for (let i = 0; i < boundaries.length; i++) {
-      const boundary = boundaries[i]
-      if (
-        rectangularCollision({
-          rectangle1: player,
-          rectangle2: {
-            ...boundary,
-            position: {
-              x: boundary.position.x - 3,
-              y: boundary.position.y
-            }
-          }
-        })
-      ) {
-        moving = false
-        break
-      }
-    }
-    if (moving) movables.forEach(m => (m.position.x -= 3))
+    movePlayer('right')
   }
 }
-
-// animate() // temp
-
-const battleBackgroundImage = new Image()
-battleBackgroundImage.src = './img/battleBackground.png'
-
-const battleBackground = new Sprite({
-  position: { x: 0, y: 0 },
-  image: battleBackgroundImage
-})
-
-const draggleImage = new Image()
-draggleImage.src = './img/draggleSprite.png'
-
-const draggle = new Sprite({
-  position: { x: 800, y: 100 },
-  image: draggleImage,
-  frames: { max: 4, hold: 30 },
-  animate: true,
-  isEnemy: true
-})
-
-const embyImage = new Image()
-embyImage.src = './img/embySprite.png'
-
-const emby = new Sprite({
-  position: { x: 300, y: 330 },
-  image: embyImage,
-  frames: { max: 4, hold: 30 },
-  animate: true
-})
-
-const renderedSprites = [draggle, emby]
-const animateBattle = () => {
-  window.requestAnimationFrame(animateBattle)
-  battleBackground.draw()
-
-  renderedSprites.forEach(s => s.draw())
-}
-animateBattle()
-
-document.querySelectorAll('button').forEach(b => {
-  b.addEventListener('click', e => {
-    const selectedAttack = attacks[e.currentTarget.innerHTML]
-    emby.attack({
-      attack: selectedAttack,
-      recipient: draggle,
-      renderedSprites
-    })
-  })
-})
 
 let lastKey = ''
 window.addEventListener('keydown', e => {
@@ -358,4 +268,11 @@ window.addEventListener('keyup', e => {
       keys.d.pressed = false
       break
   }
+})
+
+let gameBegun = false
+window.addEventListener('keydown', () => {
+  if (gameBegun) return
+  audio.map.play()
+  gameBegun = true
 })

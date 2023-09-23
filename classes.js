@@ -21,24 +21,22 @@ class Sprite {
     frames = { max: 1, hold: 10 },
     sprites,
     animate = false,
-    isEnemy = false,
     rotation = 0
   }) {
     this.position = position
     this.image = new Image()
-    this.image.src = image.src
     this.frames = { ...frames, val: 0, elapsed: 0 }
-    this.animate = animate
-    this.sprites = sprites
-    this.opacity = 1
-    this.health = 100
-    this.isEnemy = isEnemy
-    this.rotation = rotation
 
     this.image.onload = () => {
       this.width = this.image.width / this.frames.max
       this.height = this.image.height
     }
+    this.image.src = image.src
+
+    this.animate = animate
+    this.sprites = sprites
+    this.opacity = 1
+    this.rotation = rotation
   }
 
   draw() {
@@ -74,11 +72,55 @@ class Sprite {
       else this.frames.val = 0
     }
   }
+}
+
+class Monster extends Sprite {
+  constructor({
+    isEnemy = false,
+    name = 'Pokemon',
+    position,
+    image,
+    frames = { max: 1, hold: 10 },
+    sprites,
+    animate = false,
+    rotation = 0,
+    attacks
+  }) {
+    super({
+      position,
+      image,
+      frames,
+      sprites,
+      animate,
+      rotation
+    })
+    this.isEnemy = isEnemy
+    this.name = name
+    this.health = 100
+    this.attacks = attacks
+  }
+
+  faint = () => {
+    document.querySelector('#dialogueBox').innerHTML = `${this.name} fainted!`
+    gsap.to(this.position, {
+      y: this.position.y + 20
+    })
+    gsap.to(this, {
+      opacity: 0
+    })
+    audio.battle.stop()
+    audio.victory.play()
+  }
 
   attack({ attack, recipient, renderedSprites }) {
+    document.querySelector('#dialogueBox').style.display = 'block'
+    document.querySelector(
+      '#dialogueBox'
+    ).innerHTML = `${this.name} used ${attack.name}`
+
     const healthBar = this.isEnemy ? '#playerHealthBar' : '#enemyHealthBar'
     const rotation = this.isEnemy ? -2.2 : 1
-    this.health -= attack.damage
+    recipient.health -= attack.damage
 
     switch (attack.name) {
       case 'Tackle':
@@ -92,7 +134,8 @@ class Sprite {
             duration: 0.1,
             onComplete: () => {
               // Enemy gets hit
-              gsap.to(healthBar, { width: this.health + '%' })
+              audio.tackleHit.play()
+              gsap.to(healthBar, { width: recipient.health + '%' })
               gsap.to(recipient.position, {
                 x: recipient.position.x + 10,
                 yoyo: true,
@@ -112,6 +155,7 @@ class Sprite {
         break
 
       case 'Fireball':
+        audio.initFireball.play()
         const fireballImage = new Image()
         fireballImage.src = './img/fireball.png'
 
@@ -130,7 +174,8 @@ class Sprite {
           y: recipient.position.y,
           onComplete: () => {
             // Enemy gets hit
-            gsap.to(healthBar, { width: this.health + '%' })
+            audio.fireballHit.play()
+            gsap.to(healthBar, { width: recipient.health + '%' })
             gsap.to(recipient.position, {
               x: recipient.position.x + 10,
               yoyo: true,
