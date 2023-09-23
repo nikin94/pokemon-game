@@ -1,0 +1,131 @@
+* {
+  font-family: 'Press Start 2P', cursive;
+}
+
+body {
+  background-color: black;
+  margin: 0;
+}
+
+h1 {
+  margin: 0;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+#overlappingDiv {
+  background-color: black;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#userInterface {
+  display: none;
+}
+
+.healthBar {
+  background-color: #fff;
+  width: 250px;
+  position: absolute;
+  border: 4px solid #000;
+  padding: 12px;
+}
+
+.healthBarDraggle {
+  top: 50px;
+  left: 50px;
+}
+
+.healthBarEmby {
+  top: 330px;
+  right: 50px;
+}
+
+.healthBar h1 {
+  font-size: 16px;
+}
+
+.healthBar > div {
+  position: relative;
+}
+
+.healthBarBackground {
+  height: 5px;
+  background-color: #bbb;
+  margin-top: 10px;
+}
+
+.healthBarForeground {
+  height: 5px;
+  background-color: green;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.dialogueContainer {
+  display: flex;
+  background-color: #fff;
+  height: 140px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 4px #000 solid;
+}
+
+#dialogueBox {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background-color: #fff;
+  padding: 12px;
+  display: none;
+  cursor: pointer;
+}
+
+.attacksBoxContainer {
+  display: flex;
+  flex: 2;
+}
+
+#attacksBox {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#attackType {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  border-left: 4px solid #000;
+}
+
+#attackType h1 {
+  font-size: 16px;
+}
